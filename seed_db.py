@@ -2,7 +2,7 @@ import asyncio
 from sqlalchemy.future import select
 from sqlalchemy import delete
 from app.database import AsyncSessionLocal
-from app.models import User, Category
+from app.models import User, Category, Receipt, ReceiptItem # Added models
 
 async def seed_data():
     print("🌱 Starting database seed...")
@@ -19,19 +19,17 @@ async def seed_data():
             await db.commit()
             await db.refresh(test_user)
             user_id = test_user.id
-            print(f"✅ Test User created: {user_id}")
         else:
             user_id = existing_user.id
             print(f"ℹ️ User already exists: {user_id}")
 
-        # 2. Update Categories to match the "Revolut-style" list
-        print("🏷️ Updating categories to English financial standards...")
+        # 2. CLEAR EXISTING DATA (To avoid Foreign Key errors)
+        print("restarting data to avoid Foreign Key conflicts...")
+        await db.execute(delete(ReceiptItem)) # Delete items first
+        await db.execute(delete(Receipt))     # Then receipts
+        await db.execute(delete(Category))    # Now we can safely delete categories
         
-        # We delete old categories to avoid ID conflicts and stale data
-        # Note: If you have many receipts already, this might fail due to FK constraints.
-        # In a dev environment, it's usually best to wipe and re-seed.
-        await db.execute(delete(Category))
-        
+        # 3. Create the 10 English Categories from your screenshot
         new_categories = [
             Category(id=1, name="Transport", icon_name="directions_bus"),
             Category(id=2, name="Others", icon_name="more_horiz"),
@@ -47,9 +45,9 @@ async def seed_data():
         
         db.add_all(new_categories)
         await db.commit()
-        print(f"✅ Created {len(new_categories)} categories successfully!")
+        print(f"✅ Created {len(new_categories)} English categories successfully!")
 
-    print("\n🎉 Seeding complete! Your Pie Chart categories are now synced.")
+    print("\n🎉 Seeding complete! Database is clean and ready for Phase 4.")
 
 if __name__ == "__main__":
     asyncio.run(seed_data())
