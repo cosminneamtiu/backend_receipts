@@ -1,4 +1,3 @@
-# app/models.py
 import uuid
 from datetime import datetime, date
 from sqlalchemy import Column, String, Integer, Float, Date, DateTime, ForeignKey
@@ -11,6 +10,7 @@ class User(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False) # NEW: Required for Authentication
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships

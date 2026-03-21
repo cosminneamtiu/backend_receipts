@@ -32,13 +32,20 @@ async def analyze_receipt_with_openai(image_url: str) -> ParsedReceipt:
     Extract the merchant name, total amount, currency (default to RON if not specified), and the date (format strictly as YYYY-MM-DD).
     Also extract the line items (name, price, quantity).
     
-    CRITICAL: Categorize the receipt by assigning ONE integer 'category_id' from this list based on the merchant name:
-    1 = Groceries (e.g., Kaufland, Mega Image, Lidl, Auchan, Profi)
-    2 = Transport (e.g., OMV, Petrom, Uber, Bolt, CFR)
-    3 = Utilities (e.g., Electrica, Digi, Vodafone)
-    4 = Entertainment (e.g., Cinema, Steam, UNTOLD)
-    5 = Health (e.g., Catena, Dr Max, Farmacia Tei)
-    6 = Other (If you are completely unsure, use 6)
+    CRITICAL: Categorize the receipt by assigning ONE integer 'category_id' from this exact list based on the merchant name and items:
+    
+    1 = Transport (e.g., OMV, Petrom, Rompetrol, Uber, Bolt, CFR, Metro)
+    2 = Others (e.g., Miscellaneous items that do not fit anywhere else)
+    3 = Cash (e.g., ATM Withdrawals - rarely used for physical receipts)
+    4 = Shopping (e.g., Zara, H&M, Nike, Emag, Altex, Mall stores)
+    5 = Groceries (e.g., Kaufland, Mega Image, Lidl, Auchan, Carrefour, Profi)
+    6 = Dining (e.g., McDonald's, KFC, Starbucks, local restaurants, bars, cafes)
+    7 = Health (e.g., Catena, Dr Max, Farmacia Tei, Regina Maria, Dentists)
+    8 = Household (e.g., Dedeman, IKEA, Leroy Merlin, Hornbach, cleaning supplies)
+    9 = Services (e.g., Electrica, Digi, Vodafone, Haircuts, Car repairs, Subscriptions)
+    10 = Entertainment (e.g., Cinema City, Steam, UNTOLD, Concert tickets, Museums)
+    
+    Look at the merchant name and the items purchased to make your best logical guess. If completely unsure, use 2 (Others).
     """
 
     try:
@@ -59,7 +66,7 @@ async def analyze_receipt_with_openai(image_url: str) -> ParsedReceipt:
         )
         
         parsed_data = response.choices[0].message.parsed
-        print(f"✅ OpenAI successfully parsed the receipt from {parsed_data.merchant_name}!")
+        print(f"✅ OpenAI successfully parsed the receipt from {parsed_data.merchant_name}! Assigned Category ID: {parsed_data.category_id}")
         return parsed_data
         
     except Exception as e:
